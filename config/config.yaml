@@ -1,0 +1,28 @@
+# Data params
+genome: 'hg38'
+sample_meta: 'config/sample_meta.tsv'
+chromosomes: ['chr1', 'chr2', 'chr3', 'chr4', 'chr5', 'chr6',
+              'chr7', 'chr8', 'chr9', 'chr10', 'chr11', 'chr12',
+              'chr13', 'chr14', 'chr15', 'chr16', 'chr17',
+              'chr18', 'chr19', 'chr20', 'chr21', 'chr22']
+
+# maxatac pipeline params
+CTCF_model: 'CTCF_binary_revcomp99_fullModel_RR0_95.h5'
+CTCF_calibration: 'CTCF_validationPerformance_vs_thresholdCalibration.tsv'
+trim_q: 30
+bowtie2_params: '--very-sensitive --maxins 2000'
+samtools_filter: '-q 30 -f 3 -F 1028'
+slop: 20
+rpm_sf: 20000000 # 20M
+maxatac_data: 'resources/maxATAC_data'
+
+# Corigami params
+corigami_model: 'javier.ckpt'
+corigami_base: 'resources/corigami_data/'
+corigami_window: 2097152
+corigami_step: 1048576  # half the width
+corigami_resolution: 8192  # bin size
+
+# Bigpurple params
+igenome: '/gpfs/share/apps/iGenomes/Homo_sapiens/UCSC/'
+

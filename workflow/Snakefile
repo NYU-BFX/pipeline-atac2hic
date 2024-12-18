@@ -1,0 +1,92 @@
+from pathlib import Path
+import pandas as pd
+
+localrules: combine_frip, get_2bit_sequence, get_maxatac_data, sort_maxatac_blacklist, make_prediction_windows, link_fastq_files, merge_chrom_stats, merge_genome_stats
+configfile: 'config/config.yaml'
+
+# Workflow params
+rule_dir = Path('rules')
+genome = config['genome']
+igenome_base = Path(config['igenome'])
+
+# maxatac params
+genome_fasta   = igenome_base / genome / "Sequence" / "WholeGenomeFasta" / "genome.fa"
+bowtie2_index  = igenome_base / genome / "Sequence" / "Bowtie2Index"
+maxatac_data   = Path(config["maxatac_data"])
+ctcf_model     = maxatac_data / "models" / "CTCF" / config["CTCF_model"]
+ctcf_calib     = maxatac_data / "models" / "CTCF" / config["CTCF_calibration"]
+maxatac_genome = maxatac_data / genome
+chrom_sizes    = maxatac_genome / f'{genome}.chrom.sizes'
+blacklist_bed  = maxatac_genome / f'{genome}_maxatac_blacklist_sorted.bed'
+blacklist_bw   = maxatac_genome / f'{genome}_maxatac_blacklist.bw'
+chromosomes    = config['chromosomes']
+
+# corigami params
+corigami_base   = Path(config["corigami_base"])
+corigami_model  = corigami_base / "model_weights" / config.get("corigami_model", "corigami_base.ckpt")
+corigami_genome = corigami_base / "data" / genome
+corigami_seq    = corigami_genome / "dna_sequence"
+
+# Load metadata
+meta_col_types = {'ID': str, 'Run': str, 'fastq_1': str, 'fastq_2': str, 'Replicate': str}
+meta = pd.read_csv(config["sample_meta"], sep="\t", dtype=meta_col_types)
+if "Run" in meta.columns and "fastq_1" in meta.columns:
+    raise ValueError(f'meta data ({config["sample_meta"]}) contains both "Run" and "fastq_1" columns.\nOnly one is allowed.')
+elif not "Run" in meta.columns and not "fastq_1" in meta.columns:
+    raise ValueError(f'meta data ({config["sample_meta"]}) contains no "Run" or "fastq_1" column.')
+
+# Fix Replicate ID (RID) and fastq file
+if 'Run' in meta.columns:
+    meta['RID'] = meta['Run']
+    meta['fastq_1'] = meta.apply(lambda row: f'resources/fastq/{row["Run"]}_1.fastq.gz')
+    meta['fastq_2'] = meta.apply(lambda row: f'resources/fastq/{row["Run"]}_2.fastq.gz')
+elif 'Replicate' in meta.columns:
+    meta['RID'] = meta['ID'] + '-' + meta['Replicate']
+else:
+    meta['RID'] = meta['ID']
+
+if meta['RID'].duplicated().any():
+    raise ValueError(f'meta data ({config["sample_meta"]}) does not have unique identifiers. Either Run or ID_Replicate.')
+
+SID = meta['ID'].unique()  # Sample IDs
+meta.set_index('ID', inplace=True)
+
+def get_fastqs(wildcards):
+    fastqs = meta.loc[meta['RID'] == wildcards.rid, ['fastq_1', 'fastq_2']].values[0]
+    return dict(zip(('fq1', 'fq2'), fastqs))
+
+rule all:
+    input:
+        expand("results/corigami/{sid}_hic_prediction.cool", sid=SID),
+        "results/maxatac/atac_norm_chromosome_min_max.txt",
+        "results/maxatac/atac_norm_genome_stats.txt",
+        "multiqc/report.html",
+
+rule test_multiqc_dir:
+        input:
+            expand("results/fastqc/{rid}_{x}.html", rid=meta['RID'], x=[1,2]),
+            expand("results/fastqc/{rid}_{x}_trimmed.html", rid=meta['RID'], x=[1,2]),
+            expand("results/picard/{rid}.alignment_summary_metrics", rid=meta['RID']),
+            expand("results/picard/{rid}.insert_size_metrics", rid=meta['RID']),
+            expand("results/picard/{rid}.quality_distribution_metrics", rid=meta['RID']),
+            expand("results/picard/{rid}.quality_by_cycle_metrics", rid=meta['RID']),
+            expand("results/picard/{rid}.base_distribution_by_cycle_metrics", rid=meta['RID']),
+            expand("results/picard/{rid}.gc_bias.detail_metrics", rid=meta['RID']),
+            expand("results/picard/{rid}.gc_bias.summary_metrics", rid=meta['RID']),
+            expand("results/picard/{rid}.quality_yield_metrics", rid=meta['RID'])
+        output:
+            "multiqc/report.html",
+            directory("multiqc/multiqc_data"),
+        params:
+            extra="--verbose",  # Optional: extra parameters for multiqc.
+        log:
+            "logs/multiqc.log",
+        wrapper:
+            "v5.5.0/bio/multiqc"
+
+include: rule_dir / "fastq_process.smk"
+include: rule_dir / "align_reads.smk"
+include: rule_dir / "atac_signal.smk"
+include: rule_dir / "maxatac_predict.smk"
+include: rule_dir / "corigami.smk"
+

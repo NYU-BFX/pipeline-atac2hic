@@ -1,0 +1,3 @@
+ID	Replicate	fastq_1	fastq_2
+IMR-90	1	resources/fastq/ENCFF846GEV.fastq.gz	resources/fastq/ENCFF476JJX.fastq.gz
+IMR-90	2	resources/fastq/ENCFF841MYT.fastq.gz	resources/fastq/ENCFF230RJC.fastq.gz
