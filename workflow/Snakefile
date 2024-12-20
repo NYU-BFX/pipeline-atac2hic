@@ -62,7 +62,7 @@ rule all:
         "results/maxatac/atac_norm_genome_stats.txt",
         "multiqc/report.html",
 
-rule test_multiqc_dir:
+rule multiqc:
         input:
             expand("results/fastqc/{rid}_{x}.html", rid=meta['RID'], x=[1,2]),
             expand("results/fastqc/{rid}_{x}_trimmed.html", rid=meta['RID'], x=[1,2]),
