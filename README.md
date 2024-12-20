@@ -64,8 +64,9 @@ The `<corigami_base>/data` directory can be:
 
 
 To get the model weights you need to:
-  - Train your own model and save the checkpoint. Ask [Javier Rodriguez Hernaez](mailto:Javier.RodriguezHernaez@nyulangone.org) for details (or ask him to share)
-  - If in Ultraviolet symlink/copy the following path: `/gpfs/home/rodrij92/PROJECTS/SHARE/epoch=53-step=64260.ckpt`
+  - Train your own model and save the checkpoint. Ask [Javier Rodriguez Hernaez](mailto:Javier.RodriguezHernaez@nyulangone.org) for details.
+  - Download a pretrained hg38 model checkpoint created by Javier from [here](https://genome.med.nyu.edu/public/tsirigoslab/c-origami_pretrained_models/maxatac_hg38.ckpt).
+    If in Ultraviolet symlink/copy the following path: `/gpfs/home/rodrij92/PROJECTS/SHARE/epoch=53-step=64260.ckpt`
 
 ### config.yaml
 
@@ -84,3 +85,7 @@ If you have specify everything correctly you can launch the pipeline by executin
 conda activate snakemake  # activate environment you created in Ultraviolet if you don't have snakemake
 snakemake -p ultraviolet
 ```
+
+### Pipeline Graph
+
+![Rulegraph](dag.png)
