@@ -83,7 +83,7 @@ If you have specify everything correctly you can launch the pipeline by executin
 
 ```bash
 conda activate snakemake  # activate environment you created in Ultraviolet if you don't have snakemake
-snakemake -p ultraviolet
+snakemake --profile ultraviolet
 ```
 
 ### Pipeline Graph
