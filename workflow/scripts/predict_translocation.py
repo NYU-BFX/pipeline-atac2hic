@@ -622,7 +622,6 @@ def parse_arguments():
     )
 
     args = parser.parse_args()
-    print(args)
     return args
 
 
