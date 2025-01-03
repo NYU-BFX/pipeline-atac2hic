@@ -89,3 +89,32 @@ snakemake --profile ultraviolet
 ### Pipeline Graph
 
 ![Rulegraph](dag.png)
+
+### Predicting Simple Translocations
+
+The repo has the script `workflow/scripts/predict_translocation.py` (still under development) that is not part of the pipeline, 
+but can be used to predict the result of *simple translocations*. Simple translocations are defined as a merger of 2 chromosomes
+at a specific position (no indels or substitutions involved). Below is a schematic of all the simple translocations:
+
+<img width="654" alt="Figure 1 from vcf documentation v4.5" src="https://github.com/user-attachments/assets/7e8ea1e9-9c7d-41b2-8601-ac5fd4485914" />
+
+These translocations are defined in a VCF file like this:
+
+```
+#CHROM   POS    ID      REF   ALT            QUAL FILTER  INFO
+2     321681    bnd_W    G    G]17:198982]    6    PASS    .
+2     321682    bnd_V    T    ]13:123456]T    6    PASS    .
+13    123456    bnd_U    C    C[2:321682[     6    PASS    .
+13    123457    bnd_X    A    [17:198983[A    6    PASS    .
+17    198982    bnd_Y    A    A]2:321681]     6    PASS    .
+17    198983    bnd_Z    C    [13:123457[C    6    PASS    .
+```
+
+These specify translocations can be given as arguments to `predict_translocation.py` as follows (embed them in single quotes to stop bash from interpreting the symbols): 
+
+- `chr2:321681]chr17:198982]`
+- `]chr13:123456]chr2:321682`
+- `chr13:123456[chr2:321682[`
+- `[chr17:198983[chr13:123457`
+- `chr17:198982]chr2:321681]`
+- `[chr13:123457[chr17:198983`
