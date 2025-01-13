@@ -9,7 +9,7 @@ Which means you need to install snakemake and mamba (so a conda within a conda).
 
 ```bash
 module load anaconda3/gpu
-conda create -n snakemake -c conda-forge -c bioconda mamba snakemake
+conda create -n snakemake -c conda-forge -c bioconda mamba snakemake snakemake-executor-plugin-slurm
 ```
 
 To configure conda to work on Ultraviolet you can edit the `ultraviolet.yaml` that comes with
